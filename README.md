@@ -42,3 +42,16 @@ Requires Pillow (`pip install Pillow`) and Chalkboard SE installed at the macOS 
 - `assets/series1/` — 12 chibis from 表情包1 (ASCII-renamed).
 - `assets/series2/` — 9 chibis from 表情包2 (chibi01–chibi09) + `wow.png`, `stretch.jpg`, `chibi_hips.png`.
 - `assets/space/` — `avatar.jpg` (head-shot star), `suyn-logo.webp`, `sticky-note.jpg` (便利贴).
+
+## Credits
+
+All chibi artwork, the avatar, the Suyn logo, and the 便利贴 sticker are by
+**[苏烟Suyn](https://space.bilibili.com/33004908)** on Bilibili. All credit for
+the art goes to her — this repo just packages the assets into an input-overlay
+preset. Please support the original artist.
+
+## License
+
+Code and layout in this repository are released under the [MIT License](LICENSE).
+The license covers only the build script and layout JSON; the artwork assets
+remain the property of their creator (see Credits above).
