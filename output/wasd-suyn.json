@@ -1,0 +1,115 @@
+{
+    "default_height": 192,
+    "default_width": 192,
+    "elements": [
+        {
+            "code": 17,
+            "id": "w",
+            "mapping": [0, 0, 192, 192],
+            "pos": [334, 0],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 30,
+            "id": "a",
+            "mapping": [192, 0, 192, 192],
+            "pos": [167, 170],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 31,
+            "id": "s",
+            "mapping": [384, 0, 192, 192],
+            "pos": [334, 170],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 32,
+            "id": "d",
+            "mapping": [576, 0, 192, 192],
+            "pos": [501, 170],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 16,
+            "id": "q",
+            "mapping": [768, 0, 192, 192],
+            "pos": [167, 0],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 18,
+            "id": "e",
+            "mapping": [960, 0, 192, 192],
+            "pos": [501, 0],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 19,
+            "id": "r",
+            "mapping": [1152, 0, 192, 192],
+            "pos": [668, 0],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 20,
+            "id": "t",
+            "mapping": [1344, 0, 192, 192],
+            "pos": [668, 170],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 15,
+            "id": "tab",
+            "mapping": [0, 390, 192, 192],
+            "pos": [0, 0],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 42,
+            "id": "shift",
+            "mapping": [192, 390, 192, 192],
+            "pos": [0, 170],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 29,
+            "id": "ctrl",
+            "mapping": [384, 390, 192, 192],
+            "pos": [0, 340],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 44,
+            "id": "z",
+            "mapping": [576, 390, 192, 192],
+            "pos": [668, 340],
+            "type": 1,
+            "z_level": 1
+        },
+        {
+            "code": 57,
+            "id": "space",
+            "mapping": [768, 390, 526, 192],
+            "pos": [167, 340],
+            "type": 1,
+            "z_level": 1
+        }
+    ],
+    "flags": 0,
+    "overlay_height": 532,
+    "overlay_width": 860,
+    "space_h": -25,
+    "space_v": -22
+}
