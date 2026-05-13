@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Suyn Mouse Overlay</title>
+<style>
+    body, html { margin: 0; padding: 0; overflow: hidden; background: transparent; }
+    canvas { display: block; }
+    #debug { position: fixed; bottom: 4px; left: 4px; font: 11px monospace; color: #0f0; background: rgba(0,0,0,0.8); padding: 4px 8px; pointer-events: none; z-index: 10; white-space: pre; max-height: 200px; overflow: hidden; }
+</style>
+<script src="./mouse-suyn.js"></script>
+<script src="./overlay-common.js"></script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="debug"></div>
+<script>
+const atlas = new Image();
+atlas.src = params.get("atlas") || "./mouse-suyn.png";
+const elements = parseElements(MOUSE_PRESET);
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = MOUSE_PRESET.overlay_width;
+canvas.height = MOUSE_PRESET.overlay_height;
+ctx.imageSmoothingEnabled = false;
+document.getElementById("debug").style.display = DEBUG ? "block" : "none";
+
+(function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    tickMouseDot(elements);
+    tickWheel(elements);
+    drawMouseElements(ctx, atlas, elements);
+    requestAnimationFrame(draw);
+})();
+connectWS(null, elements);
+</script>
+</body>
+</html>

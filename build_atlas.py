@@ -66,7 +66,7 @@ COLUMNS_SERIES2 = [
 ]
 
 # Bubbly font + mint-green colour scheme (matches the chibi's hair).
-FONT_PATH = "/System/Library/Fonts/Supplemental/ChalkboardSE.ttc"
+FONT_PATH = os.path.join(HERE, "assets", "fonts", "Chalkboard.ttc")
 FONT_INDEX = 1  # 0=Light, 1=Regular, 2=Bold
 TEXT_FILL  = (132, 200, 168, 255)
 TEXT_MID   = (255, 255, 255, 255)

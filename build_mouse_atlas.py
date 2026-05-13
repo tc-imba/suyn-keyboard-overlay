@@ -15,15 +15,15 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUTPUT = os.path.join(HERE, "output")
 
-# Colour palette — match build_atlas.py
-CARD_RGBA       = (255, 246, 229, 255)  # cream body
-CARD_OUTLINE    = (132, 200, 168, 255)  # mint outline
+# Colour palette — matched to keyboard build_atlas.py (shadow + white outline)
+CARD_RGBA       = (255, 246, 229, 235)  # cream body (same alpha as keyboard)
+CARD_OUTLINE    = (255, 255, 255, 220)  # white outline (keyboard style)
 PRESS_TINT      = (255, 180, 200, 130)  # pink wash on pressed state
-DIVIDER_RGBA    = (132, 200, 168, 140)  # soft mint divider between LMB/RMB
-WHEEL_BODY      = (200, 220, 210, 255)
-WHEEL_ACCENT    = (132, 200, 168, 255)
-DOT_RGBA        = ( 70, 140, 110, 255)
-SHADOW_RGBA     = (180, 140, 170, 80)
+DIVIDER_RGBA    = (132, 200, 168, 140)  # mint divider between LMB/RMB
+WHEEL_BODY      = (200, 220, 210, 255)  # mint-tinted wheel body
+WHEEL_ACCENT    = (132, 200, 168, 255)  # mint stripes
+DOT_RGBA        = ( 70, 140, 110, 255)  # mint dot
+SHADOW_RGBA     = (180, 140, 170, 90)   # match keyboard shadow
 
 # The plugin auto-locates the pressed sprite at idle + cy + 3px (and the wheel
 # auto-derives middle/up/down to the right at cx + 3px). Honour that gutter.
@@ -43,48 +43,61 @@ LMB_W,   LMB_H   = 120, 170
 RMB_W,   RMB_H   = 120, 170
 MMB_W,   MMB_H   = 46, 46
 WHEEL_W, WHEEL_H = 34, 80
+SIDE_W,  SIDE_H  = 14, 44       # side buttons — half-pill (left half only)
 AREA_W,  AREA_H  = TILE, TILE   # 192×192 — same as a key card
 DOT_W,   DOT_H   = 22, 22
 
 # Overlay-space (where each element sits inside the OBS overlay).
-# Body tile and trackpad tile overlap by CARD_INSET (22), matching the keyboard
-# row stacking. The visible silhouette + cream card edges leave a 22 px gap.
+# Shift everything right by BODY_X_OFF to make room for side buttons on the left.
+BODY_X_OFF = 10                  # extra left margin for side buttons
 GAP_BELOW_BODY = -CARD_INSET    # -22 — tiles overlap like keyboard rows
-OVERLAY_W = max(BODY_W, AREA_W)
+OVERLAY_W = BODY_X_OFF + max(BODY_W, AREA_W)   # 10 + 280 = 290
 OVERLAY_H = BODY_H + GAP_BELOW_BODY + AREA_H   # 362 - 22 + 192 = 532
 
-# Position of components inside the body (overlay coords).
-# Silhouette is inset by CARD_INSET=22; put buttons a few px inside that.
-LMB_POS = (30, 32)
-RMB_POS = (BODY_W - RMB_W - 30, 32)
-WHEEL_POS = ((BODY_W - WHEEL_W) // 2, 56)
-MMB_POS = ((BODY_W - MMB_W) // 2, 160)
-AREA_POS = ((OVERLAY_W - AREA_W) // 2, BODY_H + GAP_BELOW_BODY)
-# Dot's home (top-left) so its sprite is centred in the trackpad
+# Position of components inside the overlay (all shifted right by BODY_X_OFF).
+LMB_POS = (BODY_X_OFF + 30, 32)
+RMB_POS = (BODY_X_OFF + BODY_W - RMB_W - 30, 32)
+WHEEL_POS = (BODY_X_OFF + (BODY_W - WHEEL_W) // 2, 56)
+MMB_POS = (BODY_X_OFF + (BODY_W - MMB_W) // 2, 160)
+SIDE_BACK_POS = (BODY_X_OFF + CARD_INSET - SIDE_W + 2, 170)  # mouse5 — right edge aligns with body edge
+SIDE_FWD_POS  = (BODY_X_OFF + CARD_INSET - SIDE_W + 2, 220) # mouse4
+AREA_POS = (BODY_X_OFF + (BODY_W - AREA_W) // 2, BODY_H + GAP_BELOW_BODY)
 AREA_CENTRE = (AREA_POS[0] + AREA_W // 2, AREA_POS[1] + AREA_H // 2)
 DOT_POS = (AREA_CENTRE[0] - DOT_W // 2, AREA_CENTRE[1] - DOT_H // 2)
 
 
-# ---------- atlas region layout (where each sprite lives in the PNG) ----------
-# Stack everything in a tight grid. Idle/pressed pairs are stacked vertically
-# with BORDER (3px) gutter so the plugin's auto-press derivation works.
-BODY_ATLAS         = (0, 0)
-LMB_IDLE_ATLAS     = (BODY_W + 10, 0)
-LMB_PRESS_ATLAS    = (LMB_IDLE_ATLAS[0], LMB_IDLE_ATLAS[1] + LMB_H + BORDER)
-RMB_IDLE_ATLAS     = (LMB_IDLE_ATLAS[0] + LMB_W + 10, 0)
-RMB_PRESS_ATLAS    = (RMB_IDLE_ATLAS[0], RMB_IDLE_ATLAS[1] + RMB_H + BORDER)
-MMB_IDLE_ATLAS     = (RMB_IDLE_ATLAS[0] + RMB_W + 10, 0)
-MMB_PRESS_ATLAS    = (MMB_IDLE_ATLAS[0], MMB_IDLE_ATLAS[1] + MMB_H + BORDER)
-# Wheel: 4 horizontal sprites with 3px gutters (default + middle + up + down)
-WHEEL_STRIP_ATLAS  = (BODY_W + 10, RMB_PRESS_ATLAS[1] + RMB_H + 10)
-AREA_ATLAS         = (0, BODY_H + 10)
-DOT_ATLAS          = (AREA_W + 10, BODY_H + 10)
+# ---------- atlas region layout ──────────────────────────────────────────
+# Left: Body | Middle: Area top + small items below | Right: LMB/RMB pairs
+# LMB/RMB: idle (transparent) on top, pressed (chibi) below (v+h+3 convention)
+G = BORDER
 
-ATLAS_W = max(MMB_IDLE_ATLAS[0] + MMB_W,
-              WHEEL_STRIP_ATLAS[0] + 4 * WHEEL_W + 3 * BORDER)
-ATLAS_H = max(LMB_PRESS_ATLAS[1] + LMB_H,
-              WHEEL_STRIP_ATLAS[1] + WHEEL_H,
-              AREA_ATLAS[1] + AREA_H)
+# Left: Body
+BODY_ATLAS         = (0, 0)
+
+# Middle: Area on top, small items below
+_MX                = BODY_W + G
+AREA_ATLAS         = (_MX, 0)
+_SY                = AREA_H + G
+_sx                = _MX
+SIDE_IDLE_ATLAS    = (_sx, _SY)
+SIDE_PRESS_ATLAS   = (_sx, _SY + SIDE_H + G)
+DOT_ATLAS          = (_sx, _SY + 2 * (SIDE_H + G) + 14)
+_sx               += max(SIDE_W, DOT_W) + G
+WHEEL_STRIP_ATLAS  = (_sx, _SY)
+MMB_IDLE_ATLAS     = (_sx, _SY + WHEEL_H + G)
+MMB_PRESS_ATLAS    = (_sx, _SY + WHEEL_H + G + MMB_H + G)
+
+# Right: LMB and RMB side by side (idle top=transparent, pressed bottom=chibi)
+_RX                = _MX + AREA_W + G
+LMB_IDLE_ATLAS     = (_RX, 0)
+LMB_PRESS_ATLAS    = (_RX, LMB_H + G)
+RMB_IDLE_ATLAS     = (_RX + LMB_W + G, 0)
+RMB_PRESS_ATLAS    = (RMB_IDLE_ATLAS[0], RMB_H + G)
+
+ATLAS_W = RMB_IDLE_ATLAS[0] + RMB_W
+ATLAS_H = max(BODY_H,
+              LMB_PRESS_ATLAS[1] + LMB_H,
+              MMB_PRESS_ATLAS[1] + MMB_H)
 
 
 # ---------- drawing helpers ----------
@@ -99,23 +112,28 @@ def _drop_shadow(size, draw_fn, blur=4, offset=(0, 3)):
 
 
 def draw_body() -> Image.Image:
-    """Cream teardrop silhouette: rounded rect with a more rounded top."""
-    pad = CARD_INSET   # 22 — match keyboard's CARD_INSET so silhouette has
-                       # the same 22 px transparent border as a key tile.
-    inner = (pad, pad, BODY_W - pad, BODY_H - pad)
-    radius = 105   # generous radius matching the silhouette
-    def _shape(d, fill):
-        d.rounded_rectangle(inner, radius=radius, fill=fill)
-    out = _drop_shadow((BODY_W, BODY_H), _shape, blur=6, offset=(0, 5))
-    body = Image.new("RGBA", (BODY_W, BODY_H), (0, 0, 0, 0))
-    bd = ImageDraw.Draw(body)
-    bd.rounded_rectangle(inner, radius=radius, fill=CARD_RGBA,
-                         outline=CARD_OUTLINE, width=3)
+    """Cream body — keyboard-identical shadow (blur in place, no paste offset)."""
+    pad = CARD_INSET
+    radius = 90
+    # Shadow: drawn 4px lower, blurred in place (same as keyboard make_card_rect)
+    shadow = Image.new("RGBA", (BODY_W, BODY_H), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(shadow)
+    sd.rounded_rectangle((pad, pad + 4, BODY_W - pad, BODY_H - pad),
+                         radius=radius, fill=SHADOW_RGBA)
+    shadow = shadow.filter(ImageFilter.GaussianBlur(6))
+    # Card: 4px shorter at bottom (same as keyboard)
+    card = Image.new("RGBA", (BODY_W, BODY_H), (0, 0, 0, 0))
+    cd = ImageDraw.Draw(card)
+    cd.rounded_rectangle((pad, pad, BODY_W - pad, BODY_H - pad - 4),
+                         radius=radius, fill=CARD_RGBA,
+                         outline=CARD_OUTLINE, width=2)
     # Soft vertical divider between LMB & RMB along the top half
     div_x = BODY_W // 2
-    bd.line([(div_x, 24), (div_x, BODY_H // 2 + 10)],
+    cd.line([(div_x, 24), (div_x, BODY_H // 2 + 10)],
             fill=DIVIDER_RGBA, width=2)
-    out.alpha_composite(body)
+    out = Image.new("RGBA", (BODY_W, BODY_H), (0, 0, 0, 0))
+    out = Image.alpha_composite(out, shadow)
+    out = Image.alpha_composite(out, card)
     return out
 
 
@@ -131,9 +149,42 @@ def _button_sprite(w: int, h: int, radius: int, pressed: bool,
         d.rounded_rectangle((0, 0, w, h), radius=radius, fill=PRESS_TINT,
                             outline=(232, 130, 170, 220), width=2)
     else:
-        # Subtle highlight so the user can see where the button is even at rest.
-        d.rounded_rectangle((0, 0, w, h), radius=radius,
-                            fill=(255, 255, 255, 25))
+        pass  # Idle state: fully transparent
+    return im
+
+
+def _strip_white_bg(im: Image.Image, threshold: int = 240) -> Image.Image:
+    """Knock out near-white pixels (white background removal)."""
+    im = im.copy()
+    px = im.load()
+    w, h = im.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if r >= threshold and g >= threshold and b >= threshold:
+                px[x, y] = (r, g, b, 0)
+    return im
+
+
+def _peek_button_sprite(w: int, h: int, radius: int, peek_img: Image.Image,
+                         mirror: bool = False, x_offset: int = 0) -> Image.Image:
+    """Pressed button sprite with a peeking chibi (white bg removed + cropped).
+    x_offset: shift chibi left (negative) or right (positive)."""
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    # Strip white background, then crop transparent border
+    chibi = _strip_white_bg(peek_img)
+    bbox = chibi.getbbox()
+    if bbox:
+        chibi = chibi.crop(bbox)
+    if mirror:
+        chibi = chibi.transpose(Image.FLIP_LEFT_RIGHT)
+    # Scale chibi to 85% of button height (smaller after crop)
+    target_h = int(h * 0.85)
+    chibi = chibi.resize((int(chibi.width * target_h / chibi.height), target_h), Image.LANCZOS)
+    # Centre vertically, shift horizontally
+    cx = (w - chibi.width) // 2 + x_offset
+    cy = (h - chibi.height) // 2
+    im.alpha_composite(chibi, (cx, cy))
     return im
 
 
@@ -151,10 +202,7 @@ def draw_wheel_strip() -> Image.Image:
     def _wheel(state: str) -> Image.Image:
         w = Image.new("RGBA", (WHEEL_W, WHEEL_H), (0, 0, 0, 0))
         d = ImageDraw.Draw(w)
-        # macOS / libuiohook doesn't reliably deliver MMB release events, so a
-        # press-tinted "middle" sprite would get stuck pink. Use the neutral
-        # body fill for the middle state — visually identical to default.
-        body_fill = WHEEL_BODY
+        body_fill = PRESS_TINT if state == "middle" else WHEEL_BODY
         d.rounded_rectangle((1, 1, WHEEL_W - 1, WHEEL_H - 1),
                             radius=WHEEL_W // 2, fill=body_fill,
                             outline=WHEEL_ACCENT, width=2)
@@ -175,27 +223,45 @@ def draw_wheel_strip() -> Image.Image:
     return strip
 
 
+def draw_side_button(pressed: bool) -> Image.Image:
+    """Half-pill side button — rounded on left, flat on right.
+    Mint idle, pink pressed (like the wheel)."""
+    # Draw a full pill twice the width, then crop the left half
+    full_w = SIDE_W * 2
+    full = Image.new("RGBA", (full_w, SIDE_H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(full)
+    r = SIDE_H // 2
+    if pressed:
+        d.rounded_rectangle((1, 1, full_w - 1, SIDE_H - 1), radius=r,
+                            fill=PRESS_TINT, outline=(232, 130, 170, 220), width=2)
+    else:
+        d.rounded_rectangle((1, 1, full_w - 1, SIDE_H - 1), radius=r,
+                            fill=WHEEL_BODY, outline=WHEEL_ACCENT, width=2)
+    return full.crop((0, 0, SIDE_W, SIDE_H))
+
+
 def draw_area() -> Image.Image:
-    """Cream rounded square (trackpad) styled like a keyboard key card —
-    same CARD_INSET=22, same radius=22, same drop shadow as a key tile."""
-    CARD_INSET = 22
-    RADIUS = 22
-    inner = (CARD_INSET, CARD_INSET, AREA_W - CARD_INSET, AREA_H - CARD_INSET)
-    def _shape(d, fill):
-        d.rounded_rectangle(inner, radius=RADIUS, fill=fill)
-    out = _drop_shadow((AREA_W, AREA_H), _shape, blur=6, offset=(0, 4))
-    area = Image.new("RGBA", (AREA_W, AREA_H), (0, 0, 0, 0))
-    ad = ImageDraw.Draw(area)
-    ad.rounded_rectangle(inner, radius=RADIUS, fill=CARD_RGBA,
-                         outline=(255, 255, 255, 220), width=2)
-    ad.rounded_rectangle(inner, radius=RADIUS, outline=CARD_OUTLINE, width=3)
-    # Soft crosshair guides centred in the card
+    """Cream rounded square (trackpad) — keyboard-identical shadow."""
+    _INSET = 22
+    _RADIUS = 22
+    shadow = Image.new("RGBA", (AREA_W, AREA_H), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(shadow)
+    sd.rounded_rectangle((_INSET, _INSET + 4, AREA_W - _INSET, AREA_H - _INSET),
+                         radius=_RADIUS, fill=SHADOW_RGBA)
+    shadow = shadow.filter(ImageFilter.GaussianBlur(6))
+    card = Image.new("RGBA", (AREA_W, AREA_H), (0, 0, 0, 0))
+    ad = ImageDraw.Draw(card)
+    ad.rounded_rectangle((_INSET, _INSET, AREA_W - _INSET, AREA_H - _INSET - 4),
+                         radius=_RADIUS, fill=CARD_RGBA,
+                         outline=CARD_OUTLINE, width=2)
     cx, cy = AREA_W // 2, AREA_H // 2
-    ad.line([(cx, CARD_INSET + 14), (cx, AREA_H - CARD_INSET - 14)],
-            fill=(132, 200, 168, 80), width=1)
-    ad.line([(CARD_INSET + 14, cy), (AREA_W - CARD_INSET - 14, cy)],
-            fill=(132, 200, 168, 80), width=1)
-    out.alpha_composite(area)
+    ad.line([(cx, _INSET + 14), (cx, AREA_H - _INSET - 14)],
+            fill=(132, 200, 168, 160), width=1)
+    ad.line([(_INSET + 14, cy), (AREA_W - _INSET - 14, cy)],
+            fill=(132, 200, 168, 160), width=1)
+    out = Image.new("RGBA", (AREA_W, AREA_H), (0, 0, 0, 0))
+    out = Image.alpha_composite(out, shadow)
+    out = Image.alpha_composite(out, card)
     return out
 
 
@@ -214,13 +280,13 @@ def build():
 
     atlas.alpha_composite(draw_body(), BODY_ATLAS)
 
-    atlas.alpha_composite(_button_sprite(LMB_W, LMB_H, 58, pressed=False),
-                          LMB_IDLE_ATLAS)
-    atlas.alpha_composite(_button_sprite(LMB_W, LMB_H, 58, pressed=True),
+    # Load peeking chibi for LMB/RMB pressed states
+    peek = Image.open(os.path.join(HERE, "assets", "mouse", "peek.png")).convert("RGBA")
+
+    # LMB/RMB: idle is transparent (not composited), pressed has chibi
+    atlas.alpha_composite(_peek_button_sprite(LMB_W, LMB_H, 58, peek, mirror=False, x_offset=-10),
                           LMB_PRESS_ATLAS)
-    atlas.alpha_composite(_button_sprite(RMB_W, RMB_H, 58, pressed=False),
-                          RMB_IDLE_ATLAS)
-    atlas.alpha_composite(_button_sprite(RMB_W, RMB_H, 58, pressed=True),
+    atlas.alpha_composite(_peek_button_sprite(RMB_W, RMB_H, 58, peek, mirror=True, x_offset=10),
                           RMB_PRESS_ATLAS)
     # MMB has no visual pressed state (user spec): idle == pressed.
     atlas.alpha_composite(
@@ -231,8 +297,23 @@ def build():
         MMB_PRESS_ATLAS)
 
     atlas.alpha_composite(draw_wheel_strip(), WHEEL_STRIP_ATLAS)
+    atlas.alpha_composite(draw_side_button(pressed=False), SIDE_IDLE_ATLAS)
+    atlas.alpha_composite(draw_side_button(pressed=True),  SIDE_PRESS_ATLAS)
     atlas.alpha_composite(draw_area(), AREA_ATLAS)
     atlas.alpha_composite(draw_dot(), DOT_ATLAS)
+
+    # Watermark in unused atlas area
+    wm_layer = Image.new("RGBA", atlas.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(wm_layer)
+    wm_font = ImageFont.truetype(os.path.join(HERE, "assets", "fonts", "Chalkboard.ttc"), 16, index=1)
+    wm_text = "made by tc-imba"
+    bbox = wm_font.getbbox(wm_text)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    # Below RMB pressed sprite (safe unused area)
+    wx = RMB_PRESS_ATLAS[0] + RMB_W - tw - bbox[0]
+    wy = RMB_PRESS_ATLAS[1] + RMB_H + 4 - bbox[1]
+    d.text((wx, wy), wm_text, font=wm_font, fill=(120, 120, 120, 220))
+    atlas.alpha_composite(wm_layer)
 
     out_png = os.path.join(OUTPUT, "mouse-suyn.png")
     atlas.save(out_png, "PNG", optimize=True)
@@ -243,12 +324,12 @@ def build():
         # Body silhouette
         {"id": "body", "type": 0, "z_level": 0,
          "mapping": [BODY_ATLAS[0], BODY_ATLAS[1], BODY_W, BODY_H],
-         "pos": [0, 0]},
-        # Left mouse button (LMB)  — uiohook code 1 — game action: attack
+         "pos": [BODY_X_OFF, 0]},
+        # Left mouse button (LMB) — idle transparent, pressed chibi
         {"code": 1, "id": "lmb", "type": 3, "z_level": 1,
          "mapping": [LMB_IDLE_ATLAS[0], LMB_IDLE_ATLAS[1], LMB_W, LMB_H],
          "pos": list(LMB_POS)},
-        # Right mouse button (RMB) — code 2 — game action: dodge (same as Shift)
+        # Right mouse button (RMB) — idle transparent, pressed chibi (mirrored)
         {"code": 2, "id": "rmb", "type": 3, "z_level": 1,
          "mapping": [RMB_IDLE_ATLAS[0], RMB_IDLE_ATLAS[1], RMB_W, RMB_H],
          "pos": list(RMB_POS)},
@@ -261,6 +342,14 @@ def build():
          "mapping": [WHEEL_STRIP_ATLAS[0], WHEEL_STRIP_ATLAS[1],
                      WHEEL_W, WHEEL_H],
          "pos": list(WHEEL_POS)},
+        # Side button forward (mouse5) — top
+        {"code": 5, "id": "side_fwd", "type": 3, "z_level": 1,
+         "mapping": [SIDE_IDLE_ATLAS[0], SIDE_IDLE_ATLAS[1], SIDE_W, SIDE_H],
+         "pos": list(SIDE_BACK_POS)},
+        # Side button back (mouse4) — bottom
+        {"code": 4, "id": "side_back", "type": 3, "z_level": 1,
+         "mapping": [SIDE_IDLE_ATLAS[0], SIDE_IDLE_ATLAS[1], SIDE_W, SIDE_H],
+         "pos": list(SIDE_FWD_POS)},
         # Mouse-movement area background
         {"id": "area", "type": 0, "z_level": 0,
          "mapping": [AREA_ATLAS[0], AREA_ATLAS[1], AREA_W, AREA_H],
@@ -286,6 +375,22 @@ def build():
     with open(out_json, "w") as f:
         json.dump(layout, f, indent=4, ensure_ascii=False)
     print(f"Wrote {out_json}")
+
+    # JS wrappers for browser renderers (avoids CORS issues with file://)
+    out_js = os.path.join(OUTPUT, "mouse-suyn.js")
+    with open(out_js, "w") as f:
+        f.write(f"var MOUSE_PRESET = {json.dumps(layout)};\n")
+    print(f"Wrote {out_js}")
+
+    # Also generate keyboard JS wrapper from existing JSON
+    kb_json_path = os.path.join(OUTPUT, "wasd-suyn.json")
+    if os.path.exists(kb_json_path):
+        with open(kb_json_path) as f:
+            kb_layout = json.load(f)
+        kb_js = os.path.join(OUTPUT, "wasd-suyn.js")
+        with open(kb_js, "w") as f:
+            f.write(f"var KEYBOARD_PRESET = {json.dumps(kb_layout)};\n")
+        print(f"Wrote {kb_js}")
 
 
 if __name__ == "__main__":
