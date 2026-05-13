@@ -29,27 +29,38 @@ SHADOW_RGBA     = (180, 140, 170, 80)
 # auto-derives middle/up/down to the right at cx + 3px). Honour that gutter.
 BORDER = 3
 
-# Component dimensions (px)
-BODY_W,  BODY_H  = 180, 240
-LMB_W,   LMB_H   = 78, 110
-RMB_W,   RMB_H   = 78, 110
-MMB_W,   MMB_H   = 30, 30
-WHEEL_W, WHEEL_H = 22, 52
-AREA_W,  AREA_H  = 110, 110
-DOT_W,   DOT_H   = 16, 16
+# Component dimensions (px).
+# Keyboard reference (OBS-rendered): tile = 192, CARD_INSET = 22, pitch = 170.
+# Tiles overlap by 22; CARD_INSET creates 22 px transparent inset on every side.
+# Keyboard overlay height = 2 * pitch + tile = 340 + 192 = 532.
+# Mouse mimics the same tile-stacking: body tile + trackpad tile overlap by 22,
+# body tile uses pad=22 (= CARD_INSET) so its silhouette has matching insets.
+TILE = 192            # keyboard tile size
+PITCH = 170           # uniform pitch in OBS render (== keyboard pitch_x/y)
+CARD_INSET = 22       # transparent inset around each tile (== keyboard CARD_INSET)
+BODY_W,  BODY_H  = 280, 362     # 362 = PITCH + TILE (mouse "spans 2 rows")
+LMB_W,   LMB_H   = 120, 170
+RMB_W,   RMB_H   = 120, 170
+MMB_W,   MMB_H   = 46, 46
+WHEEL_W, WHEEL_H = 34, 80
+AREA_W,  AREA_H  = TILE, TILE   # 192×192 — same as a key card
+DOT_W,   DOT_H   = 22, 22
 
-# Overlay-space (where each element sits inside the OBS overlay)
-OVERLAY_W = BODY_W            # 180
-GAP_BELOW_BODY = 20
-OVERLAY_H = BODY_H + GAP_BELOW_BODY + AREA_H   # 380
+# Overlay-space (where each element sits inside the OBS overlay).
+# Body tile and trackpad tile overlap by CARD_INSET (22), matching the keyboard
+# row stacking. The visible silhouette + cream card edges leave a 22 px gap.
+GAP_BELOW_BODY = -CARD_INSET    # -22 — tiles overlap like keyboard rows
+OVERLAY_W = max(BODY_W, AREA_W)
+OVERLAY_H = BODY_H + GAP_BELOW_BODY + AREA_H   # 362 - 22 + 192 = 532
 
-# Position of components inside the body (overlay coords)
-LMB_POS = (6, 8)
-RMB_POS = (BODY_W - RMB_W - 6, 8)               # (96, 8)
-WHEEL_POS = ((BODY_W - WHEEL_W) // 2, 28)       # (79, 28)
-MMB_POS = ((BODY_W - MMB_W) // 2, 90)           # (75, 90)
-AREA_POS = ((OVERLAY_W - AREA_W) // 2, BODY_H + GAP_BELOW_BODY)  # (35, 260)
-# Dot's home (top-left) so its 16×16 sprite is centred in the area
+# Position of components inside the body (overlay coords).
+# Silhouette is inset by CARD_INSET=22; put buttons a few px inside that.
+LMB_POS = (30, 32)
+RMB_POS = (BODY_W - RMB_W - 30, 32)
+WHEEL_POS = ((BODY_W - WHEEL_W) // 2, 56)
+MMB_POS = ((BODY_W - MMB_W) // 2, 160)
+AREA_POS = ((OVERLAY_W - AREA_W) // 2, BODY_H + GAP_BELOW_BODY)
+# Dot's home (top-left) so its sprite is centred in the trackpad
 AREA_CENTRE = (AREA_POS[0] + AREA_W // 2, AREA_POS[1] + AREA_H // 2)
 DOT_POS = (AREA_CENTRE[0] - DOT_W // 2, AREA_CENTRE[1] - DOT_H // 2)
 
@@ -89,30 +100,34 @@ def _drop_shadow(size, draw_fn, blur=4, offset=(0, 3)):
 
 def draw_body() -> Image.Image:
     """Cream teardrop silhouette: rounded rect with a more rounded top."""
-    pad = 6
+    pad = CARD_INSET   # 22 — match keyboard's CARD_INSET so silhouette has
+                       # the same 22 px transparent border as a key tile.
     inner = (pad, pad, BODY_W - pad, BODY_H - pad)
-    # Drop shadow
+    radius = 105   # generous radius matching the silhouette
     def _shape(d, fill):
-        d.rounded_rectangle(inner, radius=72, fill=fill)
-    out = _drop_shadow((BODY_W, BODY_H), _shape, blur=5, offset=(0, 4))
-    # Body
+        d.rounded_rectangle(inner, radius=radius, fill=fill)
+    out = _drop_shadow((BODY_W, BODY_H), _shape, blur=6, offset=(0, 5))
     body = Image.new("RGBA", (BODY_W, BODY_H), (0, 0, 0, 0))
     bd = ImageDraw.Draw(body)
-    bd.rounded_rectangle(inner, radius=72, fill=CARD_RGBA,
+    bd.rounded_rectangle(inner, radius=radius, fill=CARD_RGBA,
                          outline=CARD_OUTLINE, width=3)
     # Soft vertical divider between LMB & RMB along the top half
     div_x = BODY_W // 2
-    bd.line([(div_x, 18), (div_x, 130)], fill=DIVIDER_RGBA, width=2)
+    bd.line([(div_x, 24), (div_x, BODY_H // 2 + 10)],
+            fill=DIVIDER_RGBA, width=2)
     out.alpha_composite(body)
     return out
 
 
-def _button_sprite(w: int, h: int, radius: int, pressed: bool) -> Image.Image:
+def _button_sprite(w: int, h: int, radius: int, pressed: bool,
+                    no_press_state: bool = False) -> Image.Image:
     """Translucent rounded patch used to overlay LMB/RMB/MMB regions.
-    Idle = nearly invisible (lets the body show through). Pressed = pink tint."""
+    Idle = nearly invisible (lets the body show through). Pressed = pink tint.
+    `no_press_state=True` makes idle == pressed (used for MMB)."""
     im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    if pressed:
+    show_press = pressed and not no_press_state
+    if show_press:
         d.rounded_rectangle((0, 0, w, h), radius=radius, fill=PRESS_TINT,
                             outline=(232, 130, 170, 220), width=2)
     else:
@@ -123,28 +138,35 @@ def _button_sprite(w: int, h: int, radius: int, pressed: bool) -> Image.Image:
 
 
 def draw_wheel_strip() -> Image.Image:
-    """Four 22x52 sprites placed horizontally with 3px gutters:
+    """Four sprites placed horizontally with 3px gutters:
        [default | middle-pressed | scroll-up | scroll-down]"""
     total_w = 4 * WHEEL_W + 3 * BORDER
     strip = Image.new("RGBA", (total_w, WHEEL_H), (0, 0, 0, 0))
+    # Tread stripes spread across most of the wheel height
+    stripe_top, stripe_bot = 14, WHEEL_H - 14
+    n_stripes = 5
+    stripe_ys = [stripe_top + i * (stripe_bot - stripe_top) // (n_stripes - 1)
+                 for i in range(n_stripes)]
 
     def _wheel(state: str) -> Image.Image:
         w = Image.new("RGBA", (WHEEL_W, WHEEL_H), (0, 0, 0, 0))
         d = ImageDraw.Draw(w)
-        body_fill = PRESS_TINT if state == "middle" else WHEEL_BODY
+        # macOS / libuiohook doesn't reliably deliver MMB release events, so a
+        # press-tinted "middle" sprite would get stuck pink. Use the neutral
+        # body fill for the middle state — visually identical to default.
+        body_fill = WHEEL_BODY
         d.rounded_rectangle((1, 1, WHEEL_W - 1, WHEEL_H - 1),
                             radius=WHEEL_W // 2, fill=body_fill,
                             outline=WHEEL_ACCENT, width=2)
-        # Horizontal stripes (the wheel "treads")
-        for ty in (14, 22, 30, 38):
-            d.line([(5, ty), (WHEEL_W - 5, ty)], fill=WHEEL_ACCENT, width=1)
+        for ty in stripe_ys:
+            d.line([(6, ty), (WHEEL_W - 6, ty)], fill=WHEEL_ACCENT, width=1)
         if state == "up":
-            d.polygon([(WHEEL_W // 2, 4), (5, 12), (WHEEL_W - 5, 12)],
+            d.polygon([(WHEEL_W // 2, 5), (6, 16), (WHEEL_W - 6, 16)],
                        fill=DOT_RGBA)
         elif state == "down":
-            d.polygon([(WHEEL_W // 2, WHEEL_H - 4),
-                       (5, WHEEL_H - 12),
-                       (WHEEL_W - 5, WHEEL_H - 12)], fill=DOT_RGBA)
+            d.polygon([(WHEEL_W // 2, WHEEL_H - 5),
+                       (6, WHEEL_H - 16),
+                       (WHEEL_W - 6, WHEEL_H - 16)], fill=DOT_RGBA)
         return w
 
     for i, state in enumerate(["default", "middle", "up", "down"]):
@@ -154,18 +176,25 @@ def draw_wheel_strip() -> Image.Image:
 
 
 def draw_area() -> Image.Image:
-    """Cream rounded square for the mouse-movement dot."""
+    """Cream rounded square (trackpad) styled like a keyboard key card —
+    same CARD_INSET=22, same radius=22, same drop shadow as a key tile."""
+    CARD_INSET = 22
+    RADIUS = 22
+    inner = (CARD_INSET, CARD_INSET, AREA_W - CARD_INSET, AREA_H - CARD_INSET)
     def _shape(d, fill):
-        d.rounded_rectangle((4, 4, AREA_W - 4, AREA_H - 4), radius=18, fill=fill)
-    out = _drop_shadow((AREA_W, AREA_H), _shape, blur=4, offset=(0, 3))
+        d.rounded_rectangle(inner, radius=RADIUS, fill=fill)
+    out = _drop_shadow((AREA_W, AREA_H), _shape, blur=6, offset=(0, 4))
     area = Image.new("RGBA", (AREA_W, AREA_H), (0, 0, 0, 0))
     ad = ImageDraw.Draw(area)
-    ad.rounded_rectangle((4, 4, AREA_W - 4, AREA_H - 4), radius=18,
-                         fill=CARD_RGBA, outline=CARD_OUTLINE, width=3)
-    # Crosshair guides
+    ad.rounded_rectangle(inner, radius=RADIUS, fill=CARD_RGBA,
+                         outline=(255, 255, 255, 220), width=2)
+    ad.rounded_rectangle(inner, radius=RADIUS, outline=CARD_OUTLINE, width=3)
+    # Soft crosshair guides centred in the card
     cx, cy = AREA_W // 2, AREA_H // 2
-    ad.line([(cx, 16), (cx, AREA_H - 16)], fill=(132, 200, 168, 80), width=1)
-    ad.line([(16, cy), (AREA_W - 16, cy)], fill=(132, 200, 168, 80), width=1)
+    ad.line([(cx, CARD_INSET + 14), (cx, AREA_H - CARD_INSET - 14)],
+            fill=(132, 200, 168, 80), width=1)
+    ad.line([(CARD_INSET + 14, cy), (AREA_W - CARD_INSET - 14, cy)],
+            fill=(132, 200, 168, 80), width=1)
     out.alpha_composite(area)
     return out
 
@@ -185,18 +214,21 @@ def build():
 
     atlas.alpha_composite(draw_body(), BODY_ATLAS)
 
-    atlas.alpha_composite(_button_sprite(LMB_W, LMB_H, 38, pressed=False),
+    atlas.alpha_composite(_button_sprite(LMB_W, LMB_H, 58, pressed=False),
                           LMB_IDLE_ATLAS)
-    atlas.alpha_composite(_button_sprite(LMB_W, LMB_H, 38, pressed=True),
+    atlas.alpha_composite(_button_sprite(LMB_W, LMB_H, 58, pressed=True),
                           LMB_PRESS_ATLAS)
-    atlas.alpha_composite(_button_sprite(RMB_W, RMB_H, 38, pressed=False),
+    atlas.alpha_composite(_button_sprite(RMB_W, RMB_H, 58, pressed=False),
                           RMB_IDLE_ATLAS)
-    atlas.alpha_composite(_button_sprite(RMB_W, RMB_H, 38, pressed=True),
+    atlas.alpha_composite(_button_sprite(RMB_W, RMB_H, 58, pressed=True),
                           RMB_PRESS_ATLAS)
-    atlas.alpha_composite(_button_sprite(MMB_W, MMB_H, 12, pressed=False),
-                          MMB_IDLE_ATLAS)
-    atlas.alpha_composite(_button_sprite(MMB_W, MMB_H, 12, pressed=True),
-                          MMB_PRESS_ATLAS)
+    # MMB has no visual pressed state (user spec): idle == pressed.
+    atlas.alpha_composite(
+        _button_sprite(MMB_W, MMB_H, 18, pressed=False, no_press_state=True),
+        MMB_IDLE_ATLAS)
+    atlas.alpha_composite(
+        _button_sprite(MMB_W, MMB_H, 18, pressed=True, no_press_state=True),
+        MMB_PRESS_ATLAS)
 
     atlas.alpha_composite(draw_wheel_strip(), WHEEL_STRIP_ATLAS)
     atlas.alpha_composite(draw_area(), AREA_ATLAS)

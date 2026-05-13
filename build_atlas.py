@@ -72,8 +72,11 @@ TEXT_FILL  = (132, 200, 168, 255)
 TEXT_MID   = (255, 255, 255, 255)
 TEXT_OUTER = ( 70, 140, 110, 255)
 
-# Spacebar spans 3 keys at pitch 167 + the last tile's 192: 167*2 + 192 = 526.
-SPACE_W = 526
+# Uniform pitch in OBS render (x == y): visible card gap = CARD_INSET (22).
+# Pitch = card_height + gap = 148 + 22 = 170. Tile overlap = 192 - 170 = 22.
+# Spacebar spans 3 keys at this pitch: 170*2 + 192 = 532.
+PITCH = 170
+SPACE_W = 532
 SPACE_H = TILE
 
 
