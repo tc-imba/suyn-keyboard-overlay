@@ -1,0 +1,121 @@
+{
+    "default_height": 0,
+    "default_width": 0,
+    "elements": [
+        {
+            "id": "body",
+            "type": 0,
+            "z_level": 0,
+            "mapping": [
+                0,
+                0,
+                180,
+                240
+            ],
+            "pos": [
+                0,
+                0
+            ]
+        },
+        {
+            "code": 1,
+            "id": "lmb",
+            "type": 3,
+            "z_level": 1,
+            "mapping": [
+                190,
+                0,
+                78,
+                110
+            ],
+            "pos": [
+                6,
+                8
+            ]
+        },
+        {
+            "code": 2,
+            "id": "rmb",
+            "type": 3,
+            "z_level": 1,
+            "mapping": [
+                278,
+                0,
+                78,
+                110
+            ],
+            "pos": [
+                96,
+                8
+            ]
+        },
+        {
+            "code": 3,
+            "id": "mmb",
+            "type": 3,
+            "z_level": 2,
+            "mapping": [
+                366,
+                0,
+                30,
+                30
+            ],
+            "pos": [
+                75,
+                90
+            ]
+        },
+        {
+            "id": "wheel",
+            "type": 4,
+            "z_level": 2,
+            "mapping": [
+                190,
+                233,
+                22,
+                52
+            ],
+            "pos": [
+                79,
+                28
+            ]
+        },
+        {
+            "id": "area",
+            "type": 0,
+            "z_level": 0,
+            "mapping": [
+                0,
+                250,
+                110,
+                110
+            ],
+            "pos": [
+                35,
+                260
+            ]
+        },
+        {
+            "id": "dot",
+            "type": 9,
+            "z_level": 1,
+            "mapping": [
+                120,
+                250,
+                16,
+                16
+            ],
+            "mouse_radius": 45,
+            "mouse_type": 0,
+            "pos": [
+                82,
+                307
+            ]
+        }
+    ],
+    "flags": 8,
+    "overlay_height": 370,
+    "overlay_width": 180,
+    "space_h": 0,
+    "space_v": 0
+}

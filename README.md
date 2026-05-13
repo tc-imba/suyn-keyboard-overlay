@@ -1,6 +1,8 @@
 # suyn keyboard overlay
 
-Cute chibi keyboard preset for the [input-overlay](https://github.com/univrsal/input-overlay) OBS plugin.
+Cute chibi keyboard + mouse preset for the [input-overlay](https://github.com/univrsal/input-overlay) OBS plugin.
+
+## Keyboard
 
 Two PNG variants share **one** layout JSON (`output/wasd-suyn.json`) — pick whichever PNG you prefer in OBS, the layout file stays the same:
 
@@ -8,6 +10,13 @@ Two PNG variants share **one** layout JSON (`output/wasd-suyn.json`) — pick wh
 | --- | --- |
 | `output/wasd-suyn.png`  | Series 1 — refined 表情包1 chibis |
 | `output/wasd-suyn2.png` | Series 2 — 表情包2 chibis + 哇哦 / 伸懒腰 / Q版小人 specials |
+
+## Mouse
+
+Separate companion overlay at `output/mouse-suyn.png` + `output/mouse-suyn.json`.
+Stylized top-down silhouette: LMB / RMB / MMB (with pink pressed-state),
+scroll wheel (rotates on scroll), and a movement-dot area showing where the
+cursor is drifting.
 
 ## Layout
 
@@ -25,7 +34,8 @@ Row 3:  Ctrl  Z  [ ─── Space ─── ]
 ## Build
 
 ```sh
-python3 build_atlas.py
+python3 build_atlas.py        # keyboard atlases (wasd-suyn.png, wasd-suyn2.png)
+python3 build_mouse_atlas.py  # mouse atlas + JSON (mouse-suyn.png, mouse-suyn.json)
 ```
 
 Requires Pillow (`pip install Pillow`) and Chalkboard SE installed at the macOS default path.
@@ -33,7 +43,8 @@ Requires Pillow (`pip install Pillow`) and Chalkboard SE installed at the macOS 
 ## Install in OBS
 
 1. Copy the generated PNG + matching JSON anywhere.
-2. In OBS, add an `Input Overlay` source.
+2. In OBS, add an `Input Overlay` source per overlay (one for keyboard, one for
+   mouse if you want both — they can be positioned independently).
 3. Set **Image file** to the `.png` and **Layout file** to the `.json`.
 4. Enable **Monitor input**.
 
